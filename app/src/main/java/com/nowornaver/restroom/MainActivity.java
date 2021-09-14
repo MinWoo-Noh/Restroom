@@ -20,6 +20,8 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import net.daum.android.map.MapViewController;
+import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
 
@@ -29,13 +31,12 @@ import java.security.NoSuchAlgorithmException;
 /* MapViewEventListener interface를 구현하는 객체를 MapView 객체에 등록하여
 * 지도 이동/확대/축소, 지도 화면 터치(Single Tap / Double Tap / Long Press) 이벤트를 통보받을 수 있다.
 * */
-public class MainActivity extends AppCompatActivity implements MapView.MapViewEventListener {
+public class MainActivity extends AppCompatActivity implements MapView.MapViewEventListener, MapView.POIItemEventListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         getMapView();
 
@@ -46,8 +47,25 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         MapView mapView = new MapView(this);
 
         RelativeLayout mapViewContainer = findViewById(R.id.map_view);
+        MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(37.5514579595, 126.951949155);
+
+        // true 면 앱 실행시 애니메이션 효과 나오고 false 면 애니ㅇ오메이션 효과가 안나옴
+        mapView.setMapCenterPoint(mapPoint,true);
         mapViewContainer.addView(mapView);
 
+        getMarker(mapView, mapPoint);
+    }
+
+    public void getMarker(MapView mapView, MapPoint mapPoint){
+        MapPOIItem marker = new MapPOIItem();
+        marker.setItemName("Default Marker(임시)");
+        marker.setMapPoint(mapPoint);
+
+        marker.setMarkerType(MapPOIItem.MarkerType.BluePin); // 기본으로 제공하는 BluePin 마커 모양.
+        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin); // 마커를 클릭했을때, 기본으로 제공하는 RedPin 마커 모양.
+
+
+        mapView.addPOIItem(marker);
     }
 
     /**
@@ -82,7 +100,8 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
      */
     @Override
     public void onMapViewInitialized(MapView mapView) {
-
+        mapView.setMapViewEventListener(this);
+        mapView.setPOIItemEventListener(this);
     }
 
     /**
@@ -134,6 +153,31 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
     // 사용자가 지도 드래그를 끝낸 경우 호출된다.
     @Override
     public void onMapViewMoveFinished(MapView mapView, MapPoint mapPoint) {
+
+    }
+
+    @Override
+    public void onPOIItemSelected(MapView mapView, MapPOIItem mapPOIItem) {
+
+    }
+
+    @Override
+    public void onCalloutBalloonOfPOIItemTouched(MapView mapView, MapPOIItem mapPOIItem) {
+
+    }
+
+    @Override
+    public void onCalloutBalloonOfPOIItemTouched(MapView mapView, MapPOIItem mapPOIItem, MapPOIItem.CalloutBalloonButtonType calloutBalloonButtonType) {
+
+    }
+
+    @Override
+    public void onDraggablePOIItemMoved(MapView mapView, MapPOIItem mapPOIItem, MapPoint mapPoint) {
+
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
 }
