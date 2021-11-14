@@ -69,18 +69,20 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         mapView = new MapView(this);
 
         mapViewContainer = findViewById(R.id.map_view);
-        //TODO 함현재 위치 좌표를 가져와야함
+
         mapView.setMapViewEventListener(this);
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithHeading);
 
         GpsService gpsService = new GpsService(this);
         double lat = gpsService.getLatitude();
         double lon = gpsService.getLongitude();
+        // 지도에 현제 죄표 표
 //        MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(37.5514579595, 126.951949155);
         MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(lat, lon);
 
         // true 면 앱 실행시 애니메이션 효과 나오고 false 면 애니메이션 효과가 안나옴
-        mapView.setMapCenterPoint(mapPoint,true);
+        mapView.setMapCenterPoint(mapPoint, true);
+        mapView.setZoomLevel(3, true);
         mapViewContainer.addView(mapView);
 
         getMarker(mapPoint);
@@ -88,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
 
     /**
      * gps 와 네트워크가 연결 되어있지 않으면 gps 활성화 되어있으면 퍼미션 체크하는 함수
-     * 2021-09-28 노민
+     * 2021-09-28 노민우
      */
     private void getLocationCheck() {
         if (!checkLocationServicesStatus()) {
@@ -101,9 +103,9 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
     /**
      * ActivityCompat.requestPermissions 를 사용한 퍼미션 요청의 결과를 리턴받는 메소드.
      *
-     * @param requestCode
-     * @param permissions
-     * @param grantResults
+     * @param requestCode  요청 코드
+     * @param permissions  퍼미션
+     * @param grantResults 결과
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -139,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         marker.setMarkerType(MapPOIItem.MarkerType.BluePin); // 기본으로 제공하는 BluePin 마커 모양.
         marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin); // 마커를 클릭했을때, 기본으로 제공하는 RedPin 마커 모양.
 
-
         mapView.addPOIItem(marker);
     }
 
@@ -171,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
     /**
      * MapView가 사용가능 한 상태가 되었음을 알려준다.
      * onMapViewInitialized()가 호출된 이후에 MapView 객체가 제공하는 지도 조작 API 를 사용할 수 있다.
+     *
      * @param mapView
      */
     @Override
@@ -181,7 +183,8 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
 
     /**
      * 지도 중심 좌표가 이동한 경우 호출된다.
-     * @param mapView 맵뷰
+     *
+     * @param mapView  맵뷰
      * @param mapPoint 맵 좌
      */
     @Override
@@ -258,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
 
     /**
      * gps와 network 가 연결 되어있는지 확인하는 함수
+     *
      * @return gps, network
      * 2021-09-15 노민우
      */

@@ -36,7 +36,7 @@ public class GpsService extends Service implements LocationListener {
 
     public GpsService(Context context) {
         this.mContext = context;
-
+        getLocation();
     }
 
     // Location (위치) 가저오는 함수
@@ -73,15 +73,13 @@ public class GpsService extends Service implements LocationListener {
                 }
 
                 if (isGpsEnabled) {
-                    if (location == null) {
+                    if (location == null && locationManager != null) {
                         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        if (locationManager != null) {
-                            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                            if (location == null) {
-                                // location 이 null 일 경우 좌표 가져오기
-                                latitude = location.getLatitude();
-                                longitude = location.getLongitude();
-                            }
+                        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (location != null) {
+                            // location 이 null 일 경우 좌표 가져오기
+                            latitude = location.getLatitude();
+                            longitude = location.getLongitude();
                         }
                     }
                 }
@@ -98,7 +96,6 @@ public class GpsService extends Service implements LocationListener {
         if (location != null) {
             latitude = location.getLatitude();
         }
-
         return latitude;
     }
 
@@ -107,7 +104,6 @@ public class GpsService extends Service implements LocationListener {
         if (location != null) {
             longitude = location.getLongitude();
         }
-
         return longitude;
     }
 
