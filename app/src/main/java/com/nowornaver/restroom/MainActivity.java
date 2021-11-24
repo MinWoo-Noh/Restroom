@@ -1,33 +1,19 @@
 package com.nowornaver.restroom;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.app.ProgressDialog;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.location.LocationManager;
 import android.os.Bundle;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
 
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
+
+import com.nowornaver.restroom.data.RestroomData;
 
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
@@ -35,6 +21,8 @@ import net.daum.mf.map.api.MapView;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 /* MapViewEventListener interface를 구현하는 객체를 MapView 객체에 등록하여
  * 지도 이동/확대/축소, 지도 화면 터치(Single Tap / Double Tap / Long Press) 이벤트를 통보받을 수 있다.
@@ -46,20 +34,37 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
     private MapView mapView;
     private ViewGroup mapViewContainer;
 
-    private static final int GPS_ENABLE_REQUEST_CODE = 2001;
-    private static final int PERMISSIONS_REQUEST_CODE = 100;
+    // Api 요청시에 사용
+    private ProgressDialog pd;
 
-    // 매니페스트에 있는 위치 퍼미션을 가져옴
-    String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION};
+    private RestroomData restroomData;
+    private RestroomManager restroomManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getLocationCheck(); // gps, 퍼미션 체크
-        getMapView();
+        showProgress("지도 요청 중입니다.");
+
+        restroomManager = new RestroomManager(this, new RestroomManager.OnChangeRestroom() {
+            @Override
+            public void chang(RestroomData restroomData) {
+                setRestroomData(restroomData);
+                Log.d("MainActivity", "onCreate :: chang");
+                getMapView();
+            }
+        });
         // getHashKey();
+    }
+
+    // 화장실 데이터를 가져오는 메소드
+    public RestroomData getRestroomData() {
+        return restroomData;
+    }
+
+    public void setRestroomData(RestroomData restroomData) {
+        this.restroomData = restroomData;
     }
 
     /**
@@ -71,63 +76,31 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         mapViewContainer = findViewById(R.id.map_view);
 
         mapView.setMapViewEventListener(this);
+        // 현위치 트랙킹 모드 On, 단말의 위치에 따라 지도 중심이 이동한다. 나침반 모드는 꺼진 상태 TrackingModeOff 일경우 비활성화
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithHeading);
+        mapViewContainer.addView(mapView);
+
+        // 현위치 마커를 중심으로 그릴 원의 반경을 지정
+        //mapView.setCurrentLocationRadius(METER);
 
         GpsService gpsService = new GpsService(this);
         double lat = gpsService.getLatitude();
         double lon = gpsService.getLongitude();
-        // 지도에 현제 죄표 표
+        // 지도에 현제 좌표
 //        MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(37.5514579595, 126.951949155);
         MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(lat, lon);
 
         // true 면 앱 실행시 애니메이션 효과 나오고 false 면 애니메이션 효과가 안나옴
+
+        //MapPoint[] mapPointArray = {mapPoints};
+        //mapView.fitMapViewAreaToShowMapPoints(mapPoints);
+        // 중심
         mapView.setMapCenterPoint(mapPoint, true);
-        mapView.setZoomLevel(3, true);
-        mapViewContainer.addView(mapView);
+        // 줌 레벨
+        mapView.setZoomLevel(4, true);
 
+        // 현제 위치 마커 표시
         getMarker(mapPoint);
-    }
-
-    /**
-     * gps 와 네트워크가 연결 되어있지 않으면 gps 활성화 되어있으면 퍼미션 체크하는 함수
-     * 2021-09-28 노민우
-     */
-    private void getLocationCheck() {
-        if (!checkLocationServicesStatus()) {
-            showDialogForLocationServiceSetting();
-        } else {
-            checkRunTimePermission();
-        }
-    }
-
-    /**
-     * ActivityCompat.requestPermissions 를 사용한 퍼미션 요청의 결과를 리턴받는 메소드.
-     *
-     * @param requestCode  요청 코드
-     * @param permissions  퍼미션
-     * @param grantResults 결과
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // grantResults[0] 거부 -> -1
-        // grantResults[0] 허용 -> 0 (PackageManager.PERMISSION_GRANTED)
-
-        if (requestCode == PERMISSIONS_REQUEST_CODE && grantResults.length == REQUIRED_PERMISSIONS.length) {
-
-            // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신되있다면
-
-            boolean check_result = true;
-
-            // 모든 퍼미션이 허용했는지 체크
-            for (int result : grantResults) {
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    check_result = false;
-                    break;
-                }
-            }
-
-        }
     }
 
     /**
@@ -136,16 +109,30 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
     public void getMarker(MapPoint mapPoint) {
         MapPOIItem marker = new MapPOIItem();
         marker.setItemName("Default Marker(임시)");
-        marker.setMapPoint(mapPoint);
+        // Item 의 좌표를 설정
+        //marker.setMapPoint(mapPoint);
+        List<RestroomData.Item> mapPoints = getRestroomData().getResponse().getBody().getItems();
+
+        ArrayList<MapPOIItem> markerArray = new ArrayList<>();
+
+        for (RestroomData.Item item : mapPoints) {
+            MapPOIItem markers = new MapPOIItem();
+
+            marker.setMapPoint(MapPoint.mapPointWithGeoCoord(Double.parseDouble(item.getLatitude()), Double.parseDouble(item.getLongitude())));
+            marker.setItemName(item.getToiletNm());
+            markerArray.add(markers);
+        }
 
         marker.setMarkerType(MapPOIItem.MarkerType.BluePin); // 기본으로 제공하는 BluePin 마커 모양.
         marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin); // 마커를 클릭했을때, 기본으로 제공하는 RedPin 마커 모양.
 
-        mapView.addPOIItem(marker);
+        mapView.addPOIItems(markerArray.toArray(new MapPOIItem[markerArray.size()]));
+        //mapView.addPOIItem(marker);
     }
 
     /**
      * 애플리케이션 Key 값 가져오는 함수
+     * app 등록을 위해 사용했음
      * 2021.09.12 노민우
      */
     private void getHashKey() {
@@ -185,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
      * 지도 중심 좌표가 이동한 경우 호출된다.
      *
      * @param mapView  맵뷰
-     * @param mapPoint 맵 좌
+     * @param mapPoint 맵 좌표
      */
     @Override
     public void onMapViewCenterPointMoved(MapView mapView, MapPoint mapPoint) {
@@ -259,112 +246,26 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
 
     }
 
-    /**
-     * gps와 network 가 연결 되어있는지 확인하는 함수
-     *
-     * @return gps, network
-     * 2021-09-15 노민우
-     */
-    public boolean checkLocationServicesStatus() {
-        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-    }
-
-    private void dialogOK() {
-        setResult(Activity.RESULT_OK);
-        finish();
-    }
-
-    /**
-     * gps 활성화를 위한 메소드
-     * 2021-09-15 노민우
-     */
-    private void showDialogForLocationServiceSetting() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("위치 서비스 비활성화");
-        builder.setMessage("앱을 사용하기 위해서는 위치 서비스가 필요합니다. /n 위치 수정을 허용하시겠습니까?");
-        builder.setCancelable(true);
-        builder.setPositiveButton("설정", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Intent callGPSSettingIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                //startActivityForResult(callGPSSettingIntent, GPS_ENABLE_REQUEST_CODE);
-                ActivityResultLauncher<Intent> startActivityResult = registerForActivityResult(
-                        new ActivityResultContracts.StartActivityForResult(),
-                        new ActivityResultCallback<ActivityResult>() {
-                            @Override
-                            public void onActivityResult(ActivityResult result) {
-
-                                if (result.getResultCode() == GPS_ENABLE_REQUEST_CODE) {//사용자가 GPS 활성 시켰는지 검사
-                                    if (checkLocationServicesStatus()) {
-                                        if (checkLocationServicesStatus()) {
-
-                                            Log.d(TAG, "onActivityResult : GPS 활성화 되있음");
-                                            checkRunTimePermission();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                );
-                startActivityResult.launch(callGPSSettingIntent);
-            }
-        });
-        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        builder.create().show();
-    }
-
-    /**
-     * Permission 퍼미션 RunTime check 함수
-     */
-    void checkRunTimePermission() {
-
-        //런타임 퍼미션 처리
-        // 1. 위치 퍼미션을 가지고 있는지 체크합니다.
-        // ACCESS_COARSE_LOCATION 은 네트워크(와이파이, 3G, 4G 등)를 이용해서 단말기 위치를 식별하고,
-        // ACCESS_FINE_LOCATION 은 GPS 와 네트워크를 이용
-        // 때문에 ACCESS_FINE_LOCATION 을 사용하면 더 정확한 위치를 알 수 있다.
-        int hasFineLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.ACCESS_FINE_LOCATION);
-        int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.ACCESS_COARSE_LOCATION);
-
-        // 앱에 권한이 부여되어있는지 있는 확인 권한이 있다면 PERMISSION_GRANTED 반환
-        if (hasFineLocationPermission == PackageManager.PERMISSION_GRANTED &&
-                hasCoarseLocationPermission == PackageManager.PERMISSION_GRANTED) {
-
-            // 2. 이미 퍼미션을 가지고 있다면
-            // ( 안드로이드 6.0 이하 버전은 런타임 퍼미션이 필요없기 때문에 이미 허용된 걸로 인식합니다.)
-
-            // 3.  위치 값을 가져올 수 있음
-
-        } else {  //2. 퍼미션 요청을 허용한 적이 없다면 퍼미션 요청이 필요합니다. 2가지 경우(3-1, 4-1)가 있습니다.
-
-            // 3-1. 사용자가 퍼미션 거부를 한 적이 있는 경우에는
-            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, REQUIRED_PERMISSIONS[0])) {
-
-                // 3-2. 요청을 진행하기 전에 사용자가에게 퍼미션이 필요한 이유를 설명해줄 필요가 있습니다.
-                Toast.makeText(MainActivity.this, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.", Toast.LENGTH_LONG).show();
-                // 3-3. 사용자게에 퍼미션 요청을 합니다. 요청 결과는 onRequestPermissionResult에서 수신됩니다.
-                ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS,
-                        PERMISSIONS_REQUEST_CODE);
-
-
-            } else {
-                // 4-1. 사용자가 퍼미션 거부를 한 적이 없는 경우에는 퍼미션 요청을 바로 합니다.
-                // 요청 결과는 onRequestPermissionResult에서 수신됩니다.
-                ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS,
-                        PERMISSIONS_REQUEST_CODE);
-            }
-
+    //ProgressDialog 출력 메소드
+    public void showProgress(String message) {
+        if (pd != null) {
+            pd.dismiss();
+            pd = null;
         }
 
+        pd = new ProgressDialog(this);
+        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        pd.setMessage(message);
+        pd.setCancelable(false);
+        pd.setCanceledOnTouchOutside(false);
+        pd.show();
+    }
+
+    //다이얼로그 종료 메소드
+    public void hideProgress() {
+        if (pd != null) {
+            pd.dismiss();
+            pd = null;
+        }
     }
 }
