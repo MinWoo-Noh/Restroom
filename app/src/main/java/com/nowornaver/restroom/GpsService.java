@@ -44,14 +44,15 @@ public class GpsService extends Service implements LocationListener {
         try {
             // Acquire a reference to the system Location Manager (시스템 위치 관리자에대한 참조 획득)
             locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
-
-            boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER); // GPS provider(제공자)사용가능 여부
-            boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER); // 네트워크 provider 사용가능 여부
+            // GPS provider(제공자)사용가능 여부
+            boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            // 네트워크 provider 사용가능 여부
+            boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
             if (!isGpsEnabled && isNetworkEnabled) {
                 // 사용 가능하지 않을경우
             } else {
-                // 네트워크 및 GPS 퍼미션 체크하기위한 변
+                // 네트워크 및 GPS 퍼미션 체크하기위한 변수
                 int hasFindLocationPermission = ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION);
                 int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION);
 
@@ -134,7 +135,7 @@ public class GpsService extends Service implements LocationListener {
     }
 
     public void stopUsingGps() {
-        if (locationManager != null){
+        if (locationManager != null) {
             locationManager.removeUpdates(GpsService.this);
         }
     }
