@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "833202214861",
+    "project_id": "restroom-72f7f",
+    "storage_bucket": "restroom-72f7f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833202214861:android:a674e5a7fc83e2a814d684",
+        "android_client_info": {
+          "package_name": "com.nowornaver.restroom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "833202214861-mrpcass6r5mn1va7foqq5u1te6spbfbu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nowornaver.restroom",
+            "certificate_hash": "e4b216dec9701f4125b4c4eb530d7f9c0a71acdf"
+          }
+        },
+        {
+          "client_id": "833202214861-lb80fsrp7g3rogdok6um2if8dgcu6int.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3cBZXgHF57fQxIddXo-LDxr5mGuuaivA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "833202214861-lb80fsrp7g3rogdok6um2if8dgcu6int.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

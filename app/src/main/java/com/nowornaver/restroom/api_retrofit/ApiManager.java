@@ -14,17 +14,41 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 // RetrofitClient
 public class ApiManager {
-    // http://api.data.go.kr/openapi/tn_pubr_public_toilet_api?serviceKey=pcARzaI9VDoUfFCPAvEVJFnybdl8qYoOmlp03aQwVKw9y1x8s%2Bsj7nA5df%2FenVUC1RVLiR%2FDVoLnimmA268%2B%2Fw%3D%3D&pageNo=1&numOfRows=1&type=json
-
+    // http://api.data.go.kr/openapi/tn_pubr_public_toilet_api?serviceKey=XlEGlfNRcXG2l3NX32fx%2BNToWmxLKewQAIeaVZTz5ZVnwtGXpxbKlMo%2Bi1YpM5wLjBToPg1pRsesHf7iTAjOdQ%3D%3D&pageNo=1&numOfRows=1&type=json
     private final String BaseUrl = "http://api.data.go.kr/";// openapi/tn_pubr_public_toilet_api/
-    private final String serviceKey = "XlEGlfNRcXG2l3NX32fx%2BNToWmxLKewQAIeaVZTz5ZVnwtGXpxbKlMo%2Bi1YpM5wLjBToPg1pRsesHf7iTAjOdQ%3D%3D";
+    private final String serviceKey = "XlEGlfNRcXG2l3NX32fx+NToWmxLKewQAIeaVZTz5ZVnwtGXpxbKlMo+i1YpM5wLjBToPg1pRsesHf7iTAjOdQ==";
 
     private static final ApiManager apiManager = new ApiManager();
-    private RestroomService RestroomService;
+    private RestroomService restroomService;
 
     //singleton
     public static ApiManager getInstance() {
         return apiManager;
+    }
+
+    /**
+     * 위도 경도를 드가져오는 메소드
+     *
+     * @return ex) http://api.data.go.kr/openapi/tn_pubr_public_toilet_api?serviceKey=~~~~&latitude=36.8711506&longitude=128.5134172
+     */
+    public Call<RestroomData> getRestRoomRequestParam(int pageNo) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("serviceKey", serviceKey);
+        map.put("pageNo", String.valueOf(pageNo));
+        map.put("numOfRows", "500");
+        map.put("type", "json");
+
+        return restroomService.getRestroom(map);
+    }
+
+    public Call<RestroomData> getLoopRestRoomRequestParam(int pageNo) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("serviceKey", serviceKey);
+        map.put("pageNo", String.valueOf(pageNo));
+        map.put("numOfRows", "100");
+        map.put("type", "json");
+
+        return restroomService.getRestroom(map);
     }
 
     private ApiManager() {
@@ -43,22 +67,6 @@ public class ApiManager {
                 .client(client)
                 .build();
 
-        RestroomService = retrofit.create(RestroomService.class); // Retrofit 인스턴스로 객체구현
-    }
-
-    /**
-     * 위도 경도를 드가져오는 메소드
-     *
-     * @param latitude  위도
-     * @param longitude 경도
-     * @return ex) http://api.data.go.kr/openapi/tn_pubr_public_toilet_api?serviceKey=~~~~&latitude=36.8711506&longitude=128.5134172
-     */
-    public Call<RestroomData> getRestRoomLatitude(String latitude, String longitude) {
-        HashMap<String , String> map = new HashMap<>();
-        map.put("serviceKey", serviceKey);
-        map.put("latitude", latitude);
-        map.put("longitude", longitude);
-
-        return RestroomService.getRestroom(map);
+        restroomService = retrofit.create(RestroomService.class); // Retrofit 인스턴스로 객체구현
     }
 }

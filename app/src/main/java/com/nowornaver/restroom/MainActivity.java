@@ -37,7 +37,9 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
     // Api 요청시에 사용
     private ProgressDialog pd;
 
+    // private RestroomData restroomData;
     private RestroomData restroomData;
+    private List<RestroomData.Item> restroomDataItems;
     private RestroomManager restroomManager;
 
     @Override
@@ -50,7 +52,8 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         restroomManager = new RestroomManager(this, new RestroomManager.OnChangeRestroom() {
             @Override
             public void chang(RestroomData restroomData) {
-                setRestroomData(restroomData);
+                restroomDataItems = restroomData.getResponse().getBody().getItems();
+                setRestroomData(restroomDataItems);
                 Log.d("MainActivity", "onCreate :: chang");
                 getMapView();
             }
@@ -59,12 +62,12 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
     }
 
     // 화장실 데이터를 가져오는 메소드
-    public RestroomData getRestroomData() {
-        return restroomData;
+    public List<RestroomData.Item> getRestroomData() {
+        return restroomDataItems;
     }
 
-    public void setRestroomData(RestroomData restroomData) {
-        this.restroomData = restroomData;
+    public void setRestroomData(List<RestroomData.Item> restroomDataItems) {
+        this.restroomDataItems = restroomDataItems;
     }
 
     /**
@@ -111,7 +114,8 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         marker.setItemName("Default Marker(임시)");
         // Item 의 좌표를 설정
         //marker.setMapPoint(mapPoint);
-        List<RestroomData.Item> mapPoints = getRestroomData().getResponse().getBody().getItems();
+        // 이게 널임
+        List<RestroomData.Item> mapPoints = getRestroomData();
 
         ArrayList<MapPOIItem> markerArray = new ArrayList<>();
 

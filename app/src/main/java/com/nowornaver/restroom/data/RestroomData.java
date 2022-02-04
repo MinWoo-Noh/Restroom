@@ -87,12 +87,15 @@ public class RestroomData {
         @SerializedName("items")
         @Expose
         private List<Item> items = null;
+
         @SerializedName("totalCount")
         @Expose
         private String totalCount;
+
         @SerializedName("numOfRows")
         @Expose
         private String numOfRows;
+
         @SerializedName("pageNo")
         @Expose
         private String pageNo;
@@ -129,6 +132,11 @@ public class RestroomData {
             this.pageNo = pageNo;
         }
 
+        @Override
+        public String toString()
+        {
+            return "RestrommData [pageNo = "+pageNo+", totalCount = "+totalCount+", items = "+items+", numOfRows = "+numOfRows+"]";
+        }
     }
 
     public class Item {
@@ -453,6 +461,11 @@ public class RestroomData {
             this.insttCode = insttCode;
         }
 
+        @Override
+        public String toString()
+        {
+            return "RestrommData [institutionNm = "+institutionNm+", modYear = "+modYear+", toiletNm = "+toiletNm+", ladiesHandicapToiletBowlNumber = "+ladiesHandicapToiletBowlNumber+", latitude = "+latitude+", enterentCctvYn = "+enterentCctvYn+", careSewerageType = "+careSewerageType+", unisexToiletYn = "+unisexToiletYn+", insttCode = "+insttCode+", menToiletBowlNumber = "+menToiletBowlNumber+", openTime = "+openTime+", menChildrenUrinalNumber = "+menChildrenUrinalNumber+", toiletPosiType = "+toiletPosiType+", longitude = "+longitude+", lnmadr = "+lnmadr+", toiletPossType = "+toiletPossType+", menUrineNumber = "+menUrineNumber+", menHandicapUrinalNumber = "+menHandicapUrinalNumber+", menHandicapToiletBowlNumber = "+menHandicapToiletBowlNumber+", rdnmadr = "+rdnmadr+", ladiesToiletBowlNumber = "+ladiesToiletBowlNumber+", phoneNumber = "+phoneNumber+", toiletType = "+toiletType+", emgBellYn = "+emgBellYn+", dipersExchgPosi = "+dipersExchgPosi+", menChildrenToiletBowlNumber = "+menChildrenToiletBowlNumber+", ladiesChildrenToiletBowlNumber = "+ladiesChildrenToiletBowlNumber+", referenceDate = "+referenceDate+", installationYear = "+installationYear+"]";
+        }
     }
 
 }
