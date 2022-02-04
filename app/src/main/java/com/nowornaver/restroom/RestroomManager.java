@@ -15,8 +15,6 @@ import androidx.annotation.NonNull;
 import com.nowornaver.restroom.api_retrofit.ApiManager;
 import com.nowornaver.restroom.data.RestroomData;
 
-import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -58,36 +56,68 @@ public class RestroomManager {
             String lat = String.format("%.2f", latitude);
             String lon = String.format("%.2f", longitude);
 
-            requestRestroomData(lat, lon);
+            requestRestroomData();
         }
     };
 
-    private void requestRestroomData(final String lat, final String lon) {
+    //loopItem
+    int loopItemPageNo = 1;
+    boolean isResponse = false;
 
-        Call<RestroomData> response = apiManager.getRestRoomLatitude(lat, lon);
+    private void requestRestroomData() {
 
-        response.enqueue(new Callback<RestroomData>() {
-            @Override
-            public void onResponse(Call<RestroomData> call, Response<RestroomData> response) {
-                Log.d("Retrofit", "requestRestRoomData : onResponse");
+            Call<RestroomData> response = apiManager.getRestRoomRequestParam(loopItemPageNo);
 
-                RestroomData restroomData = (RestroomData) response.body();
-                onChangeRestroom.chang(restroomData);
-            }
+            Log.d("RetrofitTest", "enqueue 전 loopItemPageNo :: " + loopItemPageNo + "isResponse :: "+isResponse);
 
-            @Override
-            public void onFailure(Call<RestroomData> call, Throwable t) {
-                Log.d("Retrofit", "requestRestRoomData : onFailure");
-                Log.d("Retrofit", "requestForecast error message : " + t.getMessage());
+            response.enqueue(new Callback<RestroomData>() {
+                @Override
+                public void onResponse(Call<RestroomData> call, Response<RestroomData> response) {
+                    Log.d("Retrofit :: ", "requestRestRoomData : onResponse");
 
-                Toast.makeText(activity, "네트워크 연결을 확인해 주세요", Toast.LENGTH_SHORT).show();
+                    if (response.code() == 200) {
+                        isResponse = true;
+                        Log.d("RetrofitTest", "onResponse loopItemPageNo :: " + loopItemPageNo + "isResponse :: "+isResponse);
+                    } else {
+                        isResponse = false;
+                        Log.d("RetrofitTest", "code????? :: " + response.code());
+                        getFailure();
+                    }
+                    RestroomData restroomData = response.body();
 
-                //다이얼로그 종료
-                if (activity instanceof MainActivity) {
-                    ((MainActivity) activity).hideProgress();
+                    Log.d("Retrofit :: ", "item :: " + response.body().getResponse().getBody().getItems().size());
+
+                    // TODO 첫 데이터들 DB에 저장 하고 다음 데이터 부터 넘겨줘야함
+                    //loopItemPageNo = Integer.parseInt(response.body().getResponse().getBody().getPageNo());
+
+                    //againResponse(restroomData, loopItemPageNo);
+
+                    //String tc = response.body().getResponse().getBody().toString();
+                    //Log.d("Retrofit :: ", "tc=" + tc);
+
+                    //onChangeRestroom.chang(restroomData);
                 }
-            }
-        });
+
+                @Override
+                public void onFailure(Call<RestroomData> call, Throwable t) {
+                    Log.d("Retrofit", "requestRestRoomData : onFailure");
+                    Log.d("Retrofit", "requestForecast error message : " + t.getMessage());
+
+                    getFailure();
+
+                }
+            });
+    }
+
+
+
+    private void getFailure(){
+        Toast.makeText(activity, "네트워크 연결을 확인해 주세요", Toast.LENGTH_SHORT).show();
+        isResponse = false;
+        //다이얼로그 종료
+        if (activity instanceof MainActivity) {
+            ((MainActivity) activity).hideProgress();
+        }
     }
 
     public interface OnChangeRestroom {
