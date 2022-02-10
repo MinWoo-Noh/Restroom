@@ -52,8 +52,9 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         restroomManager = new RestroomManager(this, new RestroomManager.OnChangeRestroom() {
             @Override
             public void chang(RestroomData restroomData) {
+                hideProgress();
                 restroomDataItems = restroomData.getResponse().getBody().getItems();
-                setRestroomData(restroomDataItems);
+                //setRestroomData(restroomDataItems);
                 Log.d("MainActivity", "onCreate :: chang");
                 getMapView();
             }
@@ -122,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements MapView.MapViewEv
         for (RestroomData.Item item : mapPoints) {
             MapPOIItem markers = new MapPOIItem();
 
-            marker.setMapPoint(MapPoint.mapPointWithGeoCoord(Double.parseDouble(item.getLatitude()), Double.parseDouble(item.getLongitude())));
+            //marker.setMapPoint(MapPoint.mapPointWithGeoCoord(Double.parseDouble(item.getLatitude()), Double.parseDouble(item.getLongitude())));
+            marker.setMapPoint(mapPoint);
             marker.setItemName(item.getToiletNm());
             markerArray.add(markers);
         }

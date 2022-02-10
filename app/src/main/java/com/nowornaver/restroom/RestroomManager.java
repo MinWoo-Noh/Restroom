@@ -78,6 +78,8 @@ public class RestroomManager {
                     if (response.code() == 200) {
                         isResponse = true;
                         Log.d("RetrofitTest", "onResponse loopItemPageNo :: " + loopItemPageNo + "isResponse :: "+isResponse);
+                        RestroomData restroomData = response.body();
+                        onChangeRestroom.chang(restroomData);
                     } else {
                         isResponse = false;
                         Log.d("RetrofitTest", "code????? :: " + response.code());
@@ -108,8 +110,6 @@ public class RestroomManager {
                 }
             });
     }
-
-
 
     private void getFailure(){
         Toast.makeText(activity, "네트워크 연결을 확인해 주세요", Toast.LENGTH_SHORT).show();
